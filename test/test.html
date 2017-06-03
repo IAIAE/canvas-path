@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="./test.js"></script>
+    <script>
+        var can = document.getElementById('canvas')
+        var pen = can.getContext('2d')
+        can.width = 400
+        can.height = 400;
+        var path = LinePath.of({
+            points: [
+                [184,69],
+                [200,101],
+                [235,108],
+                [212, 134],
+                [216, 168],
+                [183, 155],
+                [150, 169],
+                [155, 134],
+                [131, 108],
+                [165, 101],
+                [184,69]
+            ],
+            duration: 4000,
+            easing: 'easeInOutCubic'
+        });
+        var path1 = LinePath.of({
+          points: [
+            [162+120, 69],
+            [162+120, 69],
+            [227+120, 118],
+            [162+120, 166],
+            [162+120, 134],
+            [162+120, 134],
+            [128+120, 134],
+            [128+120, 103],
+            [162+120, 103],
+            [162+120, 69]
+          ],
+          duration: 3000,
+          easing: 'easeOutBounce'
+        })
+        var path2 = LinePath.of({
+          points: [
+            [162-110, 69],
+            [162-110, 69],
+            [227-110, 118],
+            [162-110, 166],
+            [162-110, 134],
+            [162-110, 134],
+            [128-110, 134],
+            [128-110, 103],
+            [162-110, 103],
+            [162-110, 69]
+          ],
+          duration: 5000,
+          easing: 'easeInOutBounce'
+        })
+        path.on('start', function(point){
+          console.info('start')
+        })
+        path.on('end', function(point){
+          console.info('end')
+        })
+        // path.on('tick', function(point, t){
+        //   // depreciate
+        //   console.info(point , t)
+        // })
+        function drawPoint(x,y){
+          pen.clearRect(0,0,400,400);
+          path.renderLine(pen)
+          pen.beginPath();
+          pen.arc(x,y, 5, 0, Math.PI * 2);
+          pen.closePath();
+          pen.stroke();
+        }
+        function drawPoint1(x,y){
+          path1.renderLine(pen)
+          pen.beginPath();
+          pen.arc(x, y, 5, 0, Math.PI * 2);
+          pen.closePath();
+          pen.stroke();
+        }
+        
+        function drawPoint2(x,y){
+          path2.renderLine(pen)
+          pen.beginPath();
+          pen.arc(x, y, 5, 0, Math.PI * 2);
+          pen.closePath();
+          pen.stroke();
+        }
+
+
+        function tick(now){
+          var point = path.tick(now);
+          var point1 = path1.tick(now);
+          var point2 = path2.tick(now);
+          drawPoint(point[0], point[1]);
+          drawPoint1(point1[0], point1[1]);
+          drawPoint2(point2[0], point2[1]);
+          if(!path.isEnd() || !path1.isEnd() || !path2.isEnd()) { 
+              requestAnimationFrame(tick)
+          }
+        } 
+        requestAnimationFrame(tick)
+
+    </script>
+  </body>
+</html>
