@@ -13,6 +13,16 @@ var path = new LinePath({
     duration: 4000
 })
 
+function tick(t){
+    var point = path.tick(t);
+    // drawPoint(point[0], point[1])  // point[0]:x, point[1]:y
+    if(!path.isEnd()) requestAnimationFrames(tick)
+}
+requestAnimationFrames(tick)
+```
+
+# api
+```javascript
 path.on('start', function(point){
     var _point = path.getCurrentPoint();   //point === point
     // do something
@@ -21,19 +31,8 @@ path.on('start', function(point){
     // do some thing
 })
 .on('tick', function(point, timestamp){
-    // depreciate
+    // depreciate cause it's takes time.
 })
-
-
-var canvas = document.getElementById('canvas')
-var pen = canvas.getContext('2d')
-
-function tick(now){
-    var point = path.tick(now);
-    // drawPoint(point[0], point[1])
-    if(!path.isEnd()) requestAnimationFrames(tick)
-}
-requestAnimationFrames(tick)
 ```
 
 # chage note
