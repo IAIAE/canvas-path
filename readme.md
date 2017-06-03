@@ -10,7 +10,8 @@ var path = new LinePath({
         [200,123],
         [300,200]
     ],
-    duration: 4000
+    duration: 4000,
+    easing: 'easeInOutCubic'
 })
 
 function tick(t){

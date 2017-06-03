@@ -1,6 +1,6 @@
 {
   "name": "canvas-path",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "this is a tool like Class for generate path point for rendering canvas",
   "main": "index.js",
   "directories": {
