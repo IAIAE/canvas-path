@@ -35,6 +35,18 @@ path.on('start', function(point){
 })
 ```
 
+# demo
+
+see the demo.html in demo folder.
+
+![](https://github.com/IAIAE/canvas-path/blob/master/images/demo.gif)
+
+# performance
+
+`new LinePath()` don't hold any timer in it. so, if you donot use it, it will released by the GC, that's makes it easy-to-use, and plain to handle.
+
+![](https://github.com/IAIAE/canvas-path/blob/master/images/perf.png)
+
 # chage note
 
 - v1.0.1 LinePath is available
