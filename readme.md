@@ -37,7 +37,7 @@ path.on('start', function(point){
 
 # demo
 
-see the demo.html in demo folder.
+see the test.html in test folder.
 
 ![](https://github.com/IAIAE/canvas-path/blob/master/images/demo.gif)
 
