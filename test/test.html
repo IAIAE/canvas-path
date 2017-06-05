@@ -11,6 +11,8 @@
         var pen = can.getContext('2d')
         can.width = 400
         can.height = 400;
+        pen.strokeStyle = 'rgba(213, 0, 200,.2)'
+        pen.lineWidth = 3
         var path = LinePath.of({
             points: [
                 [184,69],
@@ -60,6 +62,19 @@
           duration: 5000,
           easing: 'easeInOutBounce'
         })
+
+        var path3 = QuadraticPath.of({
+          points: [
+            [[75,25], [25,25], [25,62.5]],
+            [[25,62.5], [25,100], [50,100]],
+            [[50,100], [50,120], [30,125]],
+            [[30,125], [60,120], [65,100]],
+            [[65,100], [125,100], [125,62.5]],
+            [[125,62.5], [125,25], [75,25]]
+          ],
+          duration: 4000,
+          easing: 'easeInOutCubic'
+        })
         path.on('start', function(point){
           console.info('start')
         })
@@ -74,14 +89,16 @@
           pen.clearRect(0,0,400,400);
           path.renderLine(pen)
           pen.beginPath();
-          pen.arc(x,y, 5, 0, Math.PI * 2);
+          // pen.arc(x,y, 5, 0, Math.PI * 2);
+          pen.drawImage(img,0,0, 206, 206, x-8, y-8, 16,16);
           pen.closePath();
           pen.stroke();
         }
         function drawPoint1(x,y){
           path1.renderLine(pen)
           pen.beginPath();
-          pen.arc(x, y, 5, 0, Math.PI * 2);
+          pen.drawImage(img,0,0, 206, 206, x-10, y-10, 20,20);
+          // pen.arc(x, y, 5, 0, Math.PI * 2);
           pen.closePath();
           pen.stroke();
         }
@@ -89,20 +106,34 @@
         function drawPoint2(x,y){
           path2.renderLine(pen)
           pen.beginPath();
-          pen.arc(x, y, 5, 0, Math.PI * 2);
+          pen.drawImage(img,0,0, 206, 206, x-8, y-8, 16,16);
+          // pen.arc(x, y, 5, 0, Math.PI * 2);
           pen.closePath();
           pen.stroke();
         }
+
+        function drawPoint3(x,y){
+          path3.renderLine(pen)
+          pen.beginPath();
+          pen.drawImage(img,0,0, 206, 206, x-15, y-15, 30,30);
+          // pen.arc(x, y, 5, 0, Math.PI * 2);
+          pen.closePath();
+          pen.stroke();
+        }
+        var img = new Image()
+        img.src= '../images/bob.png'
 
 
         function tick(now){
           var point = path.tick(now);
           var point1 = path1.tick(now);
-          var point2 = path2.tick(now);
+          // var point2 = path2.tick(now);
+          var point3 = path3.tick(now)
           drawPoint(point[0], point[1]);
           drawPoint1(point1[0], point1[1]);
-          drawPoint2(point2[0], point2[1]);
-          if(!path.isEnd() || !path1.isEnd() || !path2.isEnd()) { 
+          // drawPoint2(point2[0], point2[1]);
+          drawPoint3(point3[0], point3[1]);
+          if(!path.isEnd() || !path1.isEnd() || !path3.isEnd()) { 
               requestAnimationFrame(tick)
           }
         } 

@@ -51,5 +51,6 @@ see the test.html in test folder.
 # chage note
 
 - v1.0.1 LinePath is available
+- v1.1.0 QuadraticPath is available
 
 
