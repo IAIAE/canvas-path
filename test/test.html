@@ -30,18 +30,11 @@
             duration: 4000,
             easing: 'easeInOutCubic'
         });
-        var path1 = LinePath.of({
+  
+        var path1 = BezPath.of({
           points: [
-            [162+120, 69],
-            [162+120, 69],
-            [227+120, 118],
-            [162+120, 166],
-            [162+120, 134],
-            [162+120, 134],
-            [128+120, 134],
-            [128+120, 103],
-            [162+120, 103],
-            [162+120, 69]
+            [[25,175], [60,80], [150,30], [170,150]],
+            [[25,175], [60,80], [150,30], [170,150]]
           ],
           duration: 3000,
           easing: 'easeOutBounce'
@@ -75,6 +68,7 @@
           duration: 4000,
           easing: 'easeInOutCubic'
         })
+        
         path.on('start', function(point){
           console.info('start')
         })

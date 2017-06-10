@@ -121,7 +121,7 @@ var Easing = {
     }
 }
 
-    ;[Path, PlainLinePath, LinePath, QuadraticPath].forEach(oflize);
+    ;[Path, PlainLinePath, LinePath, QuadraticPath, BezPath].forEach(oflize);
 
 
 
@@ -419,6 +419,61 @@ method(QuadraticPath, 'genePaths', function() {
   var arr = [];
   for (var i = 0, len = points.length; i < len; i++) {
         arr.push(new PlainQuadratic(points[i][0], points[i][1], points[i][2]))
+    }
+    return arr;
+})
+.method('getPoint', LinePath.prototype.getPoint)
+.method('updateStone', LinePath.prototype.updateStone)
+.method('getMileStone', LinePath.prototype.getMileStone)
+
+
+function PlainBezPath(start, controll1, controll2, end){
+    this.start = start;
+    this.controll1 = controll1
+    this.controll2 = controll2
+    this.end = end;
+    this.distance = this.getDistance()
+}
+method(PlainBezPath, 'getDistance', function(){
+    return 100;
+})
+.method('getPoint', function(dis){
+    var t = (dis/this.distance)
+    var s = this.start;
+    var c1 = this.controll1
+    var c2 = this.controll2
+    var e = this.end
+    var x = _Math.pow((1-t), 3)*s[0] + 3*c1[0]*t*_Math.pow((1-t), 2) + 3*_Math.pow(t, 2)*(1-t)*c2[0] + e[0]*_Math.pow(t, 3)
+    var y = _Math.pow((1-t), 3)*s[1] + 3*c1[1]*t*_Math.pow((1-t), 2) + 3*_Math.pow(t, 2)*(1-t)*c2[1] + e[1]*_Math.pow(t, 3)
+    return [x, y]
+})
+.method('renderLine', function(pen){
+    var s = this.start;
+    var c1 = this.controll1;
+    var c2 = this.controll2;
+    var e = this.end;
+    pen.beginPath();
+    pen.moveTo(s[0], s[1]);
+    pen.bezierCurveTo(c1[0],c1[1], c2[0], c2[1], e[0], e[1])
+    pen.stroke()
+    pen.closePath()
+})
+
+
+
+function BezPath(config){
+  Path.call(this, config)
+  this.type = 'bez'
+}
+propExtend(BezPath.prototype, Path.prototype)
+method(BezPath, 'genePaths', function() {
+  var points = this.points;
+  if(points.length < 2){
+    return null;
+  }
+  var arr = [];
+  for (var i = 0, len = points.length; i < len; i++) {
+        arr.push(new PlainBezPath(points[i][0], points[i][1], points[i][2], points[i][3]))
     }
     return arr;
 })
