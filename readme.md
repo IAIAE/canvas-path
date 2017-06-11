@@ -1,14 +1,13 @@
 # usage
 
 ```javascript
-var cp = require('canvas-path')
-var LinePath = cp.LinePath;
+var Path = require('canvas-path')
 
-var path = new LinePath({
+
+var path = new Path({
     points: [
-        [100,200],
-        [200,123],
-        [300,200]
+        [[100,200], [200,123]],
+        [[200,123], [300,200]]
     ],
     duration: 4000,
     easing: 'easeInOutCubic'
@@ -25,8 +24,7 @@ requestAnimationFrames(tick)
 # api
 ```javascript
 path.on('start', function(point){
-    var _point = path.getCurrentPoint();   //point === point
-    // do something
+    // do some thing
 })
 .on('end', function(point){
     // do some thing
@@ -44,7 +42,7 @@ see the test.html in test folder.
 
 # performance
 
-`new LinePath()` don't hold any timer in it. so, if you donot use it, it will released by the GC, that's makes it easy-to-use, and plain to handle.
+`new Path()` don't hold any timer in it. so, if you donot use it, it will released by the GC, that's makes it easy-to-use, and plain to handle.
 
 ![](https://github.com/IAIAE/canvas-path/blob/master/images/perf.png)
 
@@ -52,5 +50,9 @@ see the test.html in test folder.
 
 - v1.0.1 LinePath is available
 - v1.1.0 QuadraticPath is available
+- v1.1.1 BezPath is available
+- v2.0.0 change api, only use Path.of to create path. deduce the complexity to use this library.
+
+
 
 

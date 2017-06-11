@@ -121,9 +121,21 @@ var Easing = {
     }
 }
 
-    ;[Path, PlainLinePath, LinePath, QuadraticPath].forEach(oflize);
+;[Path, PlainLinePath].forEach(oflize);
 
-
+var getLineInstance = function getLineInstance(points){
+    switch(points.length){
+        case 2:
+            return new PlainLinePath(points[0], points[1])
+        case 3:
+            return new PlainQuadratic(points[0], points[1], points[2])
+        case 4:
+            return new PlainBezPath(points[0], points[1], points[2], points[3])
+        default:
+            console.warn('no candidate line type for points: ', points)
+            return null;
+    }
+}
 
 /**
  * Path Class
@@ -153,6 +165,17 @@ Path.prototype = {
         var tmp = this.getMileStone();
         this.mileStone = tmp.mileStone;
         this.distance = tmp.distance
+    },
+    genePaths: function () {
+        var points = this.points;
+        if (points.length < 1) {
+            return null
+        }
+        var arr = []
+        for (var i = 0, len = points.length; i < len; i++) {
+            arr.push(getLineInstance(points[i]))
+        }
+        return arr;
     },
     tick: function (now) {
         if (!this.isStart) {
@@ -238,6 +261,54 @@ Path.prototype = {
     },
     on: function (name, cb) {
         this._cbs[name].push(cb);
+    },
+    getMileStone:  function () {
+        var arr = this.paths.map(function (path) {
+            return path.distance;
+        })
+        var sum = 0;
+        for (var i = 0; i < arr.length; i++) {
+            arr[i] = sum + arr[i]
+            sum = arr[i]
+        }
+        return {
+            mileStone: arr,
+            distance: sum
+        }
+    },
+    updateStone: function (diffDistance, beginIndex) {
+        var ms = this.mileStone;
+        if (beginIndex == null) {
+            if (ms[0] >= diffDistance) {
+                this.lastStone = 0;
+                return;
+            }
+            beginIndex = 0;
+        }
+        for (var i = beginIndex, len = ms.length - 1; i < len; i++) {
+            if (diffDistance > ms[i] && diffDistance <= ms[i + 1]) {
+                this.lastStone = i + 1;
+                break;
+            }
+        }
+
+        if (i == len) {
+            console.warn('diffDistance is out milestone, this is unexcept!!!!')
+        }
+    },
+    getPoint: function (diffDistance) {
+        // this.lastStone = 0;
+        if (this.mileStone[this.lastStone] < diffDistance) {
+            this.updateStone(diffDistance, this.lastStone);
+        } else {
+            if (this.lastStone !== 0) {
+                if (this.mileStone[this.lastStone - 1] > diffDistance) {
+                    this.updateStone(diffDistance);
+                }
+            }
+        }
+        var floor = this.lastStone == 0 ? 0 : this.mileStone[this.lastStone - 1];
+        return this.paths[this.lastStone].getPoint(diffDistance - floor);
     }
 }
 
@@ -282,84 +353,6 @@ method(PlainLinePath, 'getPoint', function (dis) {
         return _Math.sqrt(_Math.pow((sx - ex), 2) + _Math.pow((ey - sy), 2))
     })
 
-
-/**
- * 直线路径
- * @param {Object} config 
- */
-function LinePath(config) {
-    Path.call(this, config);
-    this.type = 'line'
-}
-propExtend(LinePath.prototype, Path.prototype);
-method(LinePath, 'genePaths', function () {
-    var points = this.points;
-    if (points.length < 2) {
-        return null
-    }
-    var arr = []
-    for (var i = 0, len = points.length; i < len - 1; i++) {
-        arr.push(new PlainLinePath(points[i], points[i + 1]))
-    }
-    return arr;
-})
-    .method('getDistance', function () {
-        // depreciate
-        if (!this.paths) return null;
-        return this.paths.reduce(function (seed, path) {
-            return seed + path.getDistance();
-        }, 0)
-    })
-    .method('getPoint', function (diffDistance) {
-        // this.lastStone = 0;
-        if (this.mileStone[this.lastStone] < diffDistance) {
-            this.updateStone(diffDistance, this.lastStone);
-        } else {
-            if (this.lastStone !== 0) {
-                if (this.mileStone[this.lastStone - 1] > diffDistance) {
-                    this.updateStone(diffDistance);
-                }
-            }
-        }
-        var floor = this.lastStone == 0 ? 0 : this.mileStone[this.lastStone - 1];
-        return this.paths[this.lastStone].getPoint(diffDistance - floor);
-    })
-    .method('updateStone', function (diffDistance, beginIndex) {
-        var ms = this.mileStone;
-        if (beginIndex == null) {
-            if (ms[0] >= diffDistance) {
-                this.lastStone = 0;
-                return;
-            }
-            beginIndex = 0;
-        }
-        for (var i = beginIndex, len = ms.length - 1; i < len; i++) {
-            if (diffDistance > ms[i] && diffDistance <= ms[i + 1]) {
-                this.lastStone = i + 1;
-                break;
-            }
-        }
-
-        if (i == len) {
-            console.warn('diffDistance is out milestone, this is unexcept!!!!')
-        }
-    })
-    .method('getMileStone', function () {
-        var arr = this.paths.map(function (path) {
-            return path.distance;
-        })
-        var sum = 0;
-        for (var i = 0; i < arr.length; i++) {
-            arr[i] = sum + arr[i]
-            sum = arr[i]
-        }
-        return {
-            mileStone: arr,
-            distance: sum
-        }
-    })
-
-
 function PlainQuadratic(start, controll, end) {
     this.start = start;
     this.end = end;
@@ -367,122 +360,77 @@ function PlainQuadratic(start, controll, end) {
     this.distance = this.getDistance();
 }
 
-method(PlainQuadratic, 'getPoint', function(dis){
+method(PlainQuadratic, 'getPoint', function (dis) {
     var t = (dis / this.distance);
     var s = this.start;
     var c = this.controll
     var e = this.end
-    var x = _Math.pow((1 - t), 2)*s[0] + 2*t*(1-t)*c[0] + _Math.pow(t, 2)*e[0]
-    var y = _Math.pow((1 - t), 2)*s[1] + 2*t*(1-t)*c[1] + _Math.pow(t, 2)*e[1]
+    var x = _Math.pow((1 - t), 2) * s[0] + 2 * t * (1 - t) * c[0] + _Math.pow(t, 2) * e[0]
+    var y = _Math.pow((1 - t), 2) * s[1] + 2 * t * (1 - t) * c[1] + _Math.pow(t, 2) * e[1]
     return [x, y]
 })
-.method('renderLine', function(pen){
-    var s = this.start;
-    var c = this.controll;
-    var e = this.end;
-    pen.beginPath();
-    pen.moveTo(s[0], s[1]);
-    pen.quadraticCurveTo(c[0],c[1], e[0], e[1])
-    pen.stroke()
-    pen.closePath()
-})
-.method('getDistance', function(){
-  var s = this.start
-  var c = this.controll
-  var e = this.end;
-  var ax = s[0] - 2 * c[0] + e[0];
-  var ay = s[1] - 2 * c[1] + e[1];
-  var bx = 2 * c[0] - 2 * s[0];
-  var by = 2 * c[1] - 2 * s[1];
-  var A = 4 * (ax * ax + ay * ay);
-  var B = 4 * (ax * bx + ay * by);
-  var C = bx * bx + by * by;
-  var Sabc = 2 * _Math.sqrt(A+B+C);
-  var A_2 = _Math.sqrt(A);
-  var A_32 = 2 * A * A_2;
-  var C_2 = 2 * _Math.sqrt(C);
-  var BA = B / A_2;
-  return (A_32 * Sabc + A_2 * B * (Sabc - C_2) + (4 * C * A - B * B) * _Math.log((2 * A_2 + BA + Sabc) / (BA + C_2))) / (4 * A_32);
-})
+    .method('renderLine', function (pen) {
+        var s = this.start;
+        var c = this.controll;
+        var e = this.end;
+        pen.beginPath();
+        pen.moveTo(s[0], s[1]);
+        pen.quadraticCurveTo(c[0], c[1], e[0], e[1])
+        pen.stroke()
+        pen.closePath()
+    })
+    .method('getDistance', function () {
+        var s = this.start
+        var c = this.controll
+        var e = this.end;
+        var ax = s[0] - 2 * c[0] + e[0];
+        var ay = s[1] - 2 * c[1] + e[1];
+        var bx = 2 * c[0] - 2 * s[0];
+        var by = 2 * c[1] - 2 * s[1];
+        var A = 4 * (ax * ax + ay * ay);
+        var B = 4 * (ax * bx + ay * by);
+        var C = bx * bx + by * by;
+        var Sabc = 2 * _Math.sqrt(A + B + C);
+        var A_2 = _Math.sqrt(A);
+        var A_32 = 2 * A * A_2;
+        var C_2 = 2 * _Math.sqrt(C);
+        var BA = B / A_2;
+        return (A_32 * Sabc + A_2 * B * (Sabc - C_2) + (4 * C * A - B * B) * _Math.log((2 * A_2 + BA + Sabc) / (BA + C_2))) / (4 * A_32);
+    })
 
 
-function QuadraticPath(config){
-  Path.call(this, config)
-  this.type = 'quadratic'
-}
-propExtend(QuadraticPath.prototype, Path.prototype)
-method(QuadraticPath, 'genePaths', function() {
-  var points = this.points;
-  if(points.length < 2){
-    return null;
-  }
-  var arr = [];
-  for (var i = 0, len = points.length; i < len; i++) {
-        arr.push(new PlainQuadratic(points[i][0], points[i][1], points[i][2]))
-    }
-    return arr;
-})
-.method('getPoint', LinePath.prototype.getPoint)
-.method('updateStone', LinePath.prototype.updateStone)
-.method('getMileStone', LinePath.prototype.getMileStone)
-
-
-function PlainBezPath(start, controll1, controll2, end){
+function PlainBezPath(start, controll1, controll2, end) {
     this.start = start;
     this.controll1 = controll1
     this.controll2 = controll2
     this.end = end;
     this.distance = this.getDistance()
 }
-method(PlainBezPath, 'getDistance', function(){
+method(PlainBezPath, 'getDistance', function () {
     return 100;
 })
-.method('getPoint', function(dis){
-    var t = (dis/this.distance)
-    var s = this.start;
-    var c1 = this.controll1
-    var c2 = this.controll2
-    var e = this.end
-    var x = _Math.pow((1-t), 3)*s[0] + 3*c1[0]*t*_Math.pow((1-t), 2) + 3*_Math.pow(t, 2)*(1-t)*c2[0] + e[0]*_Math.pow(t, 3)
-    var y = _Math.pow((1-t), 3)*s[1] + 3*c1[1]*t*_Math.pow((1-t), 2) + 3*_Math.pow(t, 2)*(1-t)*c2[1] + e[1]*_Math.pow(t, 3)
-})
-method('renderLine', function(pen){
-    var s = this.start;
-    var c1 = this.controll1;
-    var c2 = this.controll2;
-    var e = this.end;
-    pen.beginPath();
-    pen.moveTo(s[0], s[1]);
-    pen.bezierCurveTo(c1[0],c1[1], c2[0], c2[1], e[0], e[1])
-    pen.stroke()
-    pen.closePath()
-})
+    .method('getPoint', function (dis) {
+        var t = (dis / this.distance)
+        var s = this.start;
+        var c1 = this.controll1
+        var c2 = this.controll2
+        var e = this.end
+        var x = _Math.pow((1 - t), 3) * s[0] + 3 * c1[0] * t * _Math.pow((1 - t), 2) + 3 * _Math.pow(t, 2) * (1 - t) * c2[0] + e[0] * _Math.pow(t, 3)
+        var y = _Math.pow((1 - t), 3) * s[1] + 3 * c1[1] * t * _Math.pow((1 - t), 2) + 3 * _Math.pow(t, 2) * (1 - t) * c2[1] + e[1] * _Math.pow(t, 3)
+        return [x, y]
+    })
+    .method('renderLine', function (pen) {
+        var s = this.start;
+        var c1 = this.controll1;
+        var c2 = this.controll2;
+        var e = this.end;
+        pen.beginPath();
+        pen.moveTo(s[0], s[1]);
+        pen.bezierCurveTo(c1[0], c1[1], c2[0], c2[1], e[0], e[1])
+        pen.stroke()
+        pen.closePath()
+    })
 
 
-
-function BezPath(config){
-  Path.call(this, config)
-  this.type = 'bez'
-}
-propExtend(BezPath.prototype, Path.prototype)
-method(BezPath, 'genePaths', function() {
-  var points = this.points;
-  if(points.length < 2){
-    return null;
-  }
-  var arr = [];
-  for (var i = 0, len = points.length; i < len; i++) {
-        arr.push(new PlainBezPath(points[i][0], points[i][1], points[i][2], points[i][3]))
-    }
-    return arr;
-})
-.method('getPoint', LinePath.prototype.getPoint)
-.method('updateStone', LinePath.prototype.updateStone)
-.method('getMileStone', LinePath.prototype.getMileStone)
-
-module.exports = {
-  LinePath: LinePath,
-  QuadraticPath: QuadraticPath,
-  BezPath: BezPath
-}
+module.exports = Path
 
