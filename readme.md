@@ -53,6 +53,7 @@ see the test.html in test folder.
 - v1.1.1 BezPath is available
 - v2.0.0 change api, only use Path.of to create path. deduce the complexity to use this library.
 
-
+# todo
+maybe modulize next time.
 
 

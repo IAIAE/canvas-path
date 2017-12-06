@@ -22,6 +22,8 @@ function method(Constructor, name, fn) {
 
 var _Math = Math;
 
+// TODO modulize next time
+
 /**
  * easing demo see here: http://easings.net/zh-cn
  */
@@ -311,10 +313,6 @@ Path.prototype = {
         return this.paths[this.lastStone].getPoint(diffDistance - floor);
     }
 }
-
-
-
-
 
 
 
